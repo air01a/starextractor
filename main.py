@@ -15,9 +15,16 @@ rcParams['figure.figsize'] = [10., 8.]
 
 #Open Fits
 img = open_process_fits('test.fits')
-stretch(img,0.10)
+stretch(img,0.30)
 levels(img,3000,1,65536,1,1,1,1)
 data = img.data
+histogram, bins = np.histogram(data.astype('uint8').flatten(), bins=256, range=[0, 256])
+plt.figure()
+plt.bar(bins[:-1], histogram, width=1)
+plt.xlabel('Niveaux de gris')
+plt.ylabel('Fréquence')
+plt.title('Histogramme de l\'image')
+plt.show()
 
 # If image has color
 if len(data.shape) == 3:

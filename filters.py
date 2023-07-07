@@ -145,6 +145,14 @@ def gammaCorrection(img_data, gamma):
         return numpy.clip(numpy.power(img_data, gamma), 0.0, 1.0)
     
 def stretch(image : Image, strength : float):
+
+    #clip_percent = 1  # Pourcentage des valeurs à ignorer lors du calcul des limites
+    #vmin, vmax = numpy.nanpercentile(image.data, clip_percent), numpy.nanpercentile(image.data, 100 - clip_percent)
+
+    # Effectuer le stretch adaptatif
+    #stretched_data = numpy.clip(image.data, vmin, vmax)
+    #stretched_data = (stretched_data - vmin) / (vmax - vmin)  # Normalisation entre 0 et 1
+    #return
     # strength float : 0-1
     image.data = numpy.interp(image.data,
                                    (image.data.min(), image.data.max()),
