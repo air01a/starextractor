@@ -5,6 +5,8 @@ from constants import I16_BITS_MAX_VALUE, HOT_PIXEL_RATIO
 
 import logging
 from stretch import Stretch
+from math import sqrt
+import cv2
 
 logger = logging.getLogger(__name__)
 def sharpen(image):
@@ -144,15 +146,31 @@ def gammaCorrection(img_data, gamma):
     else:
         return numpy.clip(numpy.power(img_data, gamma), 0.0, 1.0)
     
+
+def stddev(image: Image):
+    npixels = image.height * image.width*3
+    sum = image.data.sum()
+    sum2 = numpy.square(image.data).sum()
+    print(npixels*sum2 - sum*sum)
+    return (sqrt (npixels*sum2 - sum*sum)/npixels, min(image.data), max(image.data), image.data.mean())
+    
+
+
 def stretch(image : Image, strength : float):
+    #n=1
+    #if len(image.data.shape)==3:
+    #    n=3
+    
+    #for i in range(0,n):
+    #clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
-    #clip_percent = 1  # Pourcentage des valeurs à ignorer lors du calcul des limites
-    #vmin, vmax = numpy.nanpercentile(image.data, clip_percent), numpy.nanpercentile(image.data, 100 - clip_percent)
+    #image.data = clahe.apply( image.data)
+    clip_percent=0.1
+    min_val = numpy.percentile(image.data, clip_percent)
+    max_val = numpy.percentile(image.data, 100 - clip_percent)
+    image.data = numpy.clip((image.data - min_val) * (65535.0 / (max_val - min_val)), 0, 65535)
 
-    # Effectuer le stretch adaptatif
-    #stretched_data = numpy.clip(image.data, vmin, vmax)
-    #stretched_data = (stretched_data - vmin) / (vmax - vmin)  # Normalisation entre 0 et 1
-    #return
+    return
     # strength float : 0-1
     image.data = numpy.interp(image.data,
                                    (image.data.min(), image.data.max()),
