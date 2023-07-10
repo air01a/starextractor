@@ -79,7 +79,7 @@ def adapt(image):
 def normalize(image):
     if image.is_color():
         image.set_color_axis_as(2)
-    image.data = numpy.uint16(numpy.clip(image.data, 0, I16_BITS_MAX_VALUE))
+    image.data = numpy.uint16(numpy.clip(image.data, 0, 65535))
     return image
 
 def reduce(image, size):

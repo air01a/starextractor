@@ -156,28 +156,45 @@ def stddev(image: Image):
     
 
 
-def stretch(image : Image, strength : float):
+def stretch(image : Image, strength : float, algo: int =0):
     #n=1
-    #if len(image.data.shape)==3:
-    #    n=3
-    
-    #for i in range(0,n):
-    #clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-
-    #image.data = clahe.apply( image.data)
-    clip_percent=0.1
-    min_val = numpy.percentile(image.data, clip_percent)
-    max_val = numpy.percentile(image.data, 100 - clip_percent)
-    image.data = numpy.clip((image.data - min_val) * (65535.0 / (max_val - min_val)), 0, 65535)
-
-    return
-    # strength float : 0-1
-    image.data = numpy.interp(image.data,
-                                   (image.data.min(), image.data.max()),
-                                   (0, I16_BITS_MAX_VALUE))
-    if image.is_color():
-        for channel in range(3):
-            image.data[channel] = Stretch(target_bkg=strength).stretch(image.data[channel])
+    if (algo==0): # algo stretch with clipping (strength 0:1, default = 0.1)
+        # Best for stars imaging
+        if (image.is_color()):
+            for i in range(0,image.data.shape[0]):
+                print(i)
+                min_val = numpy.percentile(image.data[i], strength)
+                max_val = numpy.percentile(image.data[i], 100 - strength)
+                image.data[i] = numpy.clip((image.data[i] - min_val) * (65535.0 / (max_val - min_val)), 0, 65535)
         else:
-            image.data = Stretch(target_bkg=strength).stretch(image.data)
-    image.data *= I16_BITS_MAX_VALUE
+                min_val = numpy.percentile(image.data, strength)
+                max_val = numpy.percentile(image.data, 100 - strength)
+                image.data = numpy.clip((image.data - min_val) * (65535.0 / (max_val - min_val)), 0, 65535)
+    elif (algo==1):
+        # strength float : 0-1
+        # Pixinsight MTF algorithm, best with nebula
+        image.data = numpy.interp(image.data,
+                                    (image.data.min(), image.data.max()),
+                                    (0, I16_BITS_MAX_VALUE))
+        if image.is_color():
+            for channel in range(3):
+                image.data[channel] = Stretch(target_bkg=strength).stretch(image.data[channel])
+            else:
+                image.data = Stretch(target_bkg=strength).stretch(image.data)
+        image.data *= I16_BITS_MAX_VALUE
+
+    elif (algo==2):
+        # stddev method
+        # strength between 0-8
+        mean = numpy.mean(image.data)
+        stddev = numpy.std(image.data)
+
+        # Soustraire la moyenne et diviser par l'écart-type multiplié par le facteur de contraste
+        contrast_factor = 1/(2000*strength)
+        stretched_image = (image.data - mean) / (stddev * contrast_factor)
+
+        # Tronquer les valeurs des pixels en dessous de zéro à zéro et au-dessus de 255 à 255
+        stretched_image = numpy.clip(stretched_image, 0, 65535)
+
+        # Convertir les valeurs des pixels en entiers
+        image.data = stretched_image.astype(numpy.uint16)

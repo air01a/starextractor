@@ -15,7 +15,7 @@ rcParams['figure.figsize'] = [10., 8.]
 
 #Open Fits
 img = open_process_fits('test.fits')
-stretch(img,0.18)
+stretch(img,0.18,0)
 levels(img,3000,1,65536,1,1,1,1)
 data = img.data
 histogram, bins = np.histogram((data/255), bins=256, range=[0, 256])
